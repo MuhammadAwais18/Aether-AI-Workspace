@@ -1,0 +1,5 @@
+import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { createInvitation, listWorkspaceMembers } from "@/lib/db";
+export async function GET() { const user = await getCurrentUser(); if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return NextResponse.json(listWorkspaceMembers(user.id)); }
+export async function POST(request: Request) { const user = await getCurrentUser(); if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); const body = await request.json() as { email?: string; role?: string }; const email = body.email?.trim().toLowerCase(); if (!email || !email.includes("@")) return NextResponse.json({ error: "A valid email is required." }, { status: 400 }); return NextResponse.json({ invitation: createInvitation(user.id, email, body.role ?? "member") }, { status: 201 }); }

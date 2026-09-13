@@ -1,0 +1,6 @@
+import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { createPrompt, listPromptsForUser } from "@/lib/db";
+
+export async function GET(request: Request) { const user = await getCurrentUser(); if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return NextResponse.json({ prompts: listPromptsForUser(user.id, new URL(request.url).searchParams.get("search") ?? "") }); }
+export async function POST(request: Request) { const user = await getCurrentUser(); if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); const body = await request.json() as { title?: string; content?: string; category?: string }; if (!body.title?.trim() || !body.content?.trim()) return NextResponse.json({ error: "Title and prompt content are required." }, { status: 400 }); return NextResponse.json({ prompt: createPrompt(user.id, { title: body.title, content: body.content, category: body.category ?? "General" }) }, { status: 201 }); }
